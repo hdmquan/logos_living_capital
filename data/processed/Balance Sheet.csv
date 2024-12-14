@@ -1,0 +1,36 @@
+,Month Ending,Month Ending,Period Difference,Year Ending,Period Difference
+,09/30/2024,08/31/2024,,12/31/2023,
+,,,,,
+Assets,,,,,
+Current Assets,,,,,
+Cash and Cash Equivalents,446104.12,391253.4,54850.72,261720.36,-184383.76
+"Accounts Receivable, Net",-346188.96,-314787.07,-31401.89,68993.14,415182.1
+Prepaid Expenses,283911.83,343089.01,-59177.18,108764.8,-175147.03
+Other Current Assets,1707,1707,0,1707,0
+Total Current Assets,385533.99,421262.34,-35728.35,441185.3,55651.31
+"Fixed Assets, Net",,,,,
+Fixed Assets,138753.4,130201.71,8551.69,127865.08,-10888.32
+Accumulated Depreciation,19051.32,17447.12,1604.2,5632.66,-13418.66
+"Total Fixed Assets, Net",119702.08,112754.59,6947.49,122232.42,2530.34
+"Intangible Assets, Net",,,,,
+Intangible Assets,22347.21,22347.21,0,22347.21,0
+Amortization,434.56,434.56,0,434.56,0
+"Total Intangible Assets, Net",21912.65,21912.65,0,21912.65,0
+Total Assets,527148.72,555929.58,-28780.86,585330.37,58181.65
+Liabilities and Equity,,,,,
+Liabilities,,,,,
+Current Liabilities,,,,,
+Accounts Payable,1083709.61,1061961.51,21748.1,923932.7,-159776.91
+Accrued Liabilities,95745.39,87124.07,8621.32,291318.58,195573.19
+Accrued Taxes,4247.8,4247.8,0,4247.8,0
+Intercompany Payable,1496229.02,1502138.14,-5909.12,1245806.61,-250422.41
+Capital Lease Obligation,-11695.58,-11695.58,0,-5284.96,6410.62
+Other Current Liabilities,-8640.84,-8640.84,0,-8640.84,0
+Total Current Liabilities,2659595.4,2635135.1,24460.3,2451379.89,-208215.51
+Total Liabilities,2659595.4,2635135.1,24460.3,2451379.89,-208215.51
+Stockholders Equity,,,,,
+Partners Equity,200001,200001,0,200001,0
+Retained Earnings,-2279206.52,-2218169.49,-61037.03,-1181679.36,1097527.16
+Net Income (Loss),-53241.16,-61037.03,7795.87,-884371.16,-831130
+Total Stockholders Equity,-2132446.68,-2079205.52,-53241.16,-1866049.52,266397.16
+Total Liabilities and Equity,527148.72,555929.58,-28780.86,585330.37,58181.65

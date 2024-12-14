@@ -1,0 +1,1 @@
+Maybe iterate through each sheet and separately prompt 4o-mini to generate a json with csv file name and content then a script will validate and construct the csv.

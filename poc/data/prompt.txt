@@ -1,0 +1,3 @@
+[data]
+
+Turn this into a csv, remove the thousands separator, make any number with brackets negative and any additional text should be removed.
