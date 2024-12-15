@@ -1,7 +1,4 @@
-0,1,2,3,4,5,6,7,8,9,10,11,12
-,Month Ending,,Month Ending,,,,Year To Date,,Year To Date,,,
-,09/30/2024,,08/31/2024,,,,09/30/2024,,09/30/2023,,,
-,Actual,PPD,Actual,PPD,$ Change,% Variance,Actual,PPD,Actual,PPD,$ Change,% Variance
+,Month Ending 09/30/2024 Actual,PPD,Month Ending 08/31/2024 Actual,PPD,$ Change,% Variance,Year To Date 09/30/2024 Actual,PPD,Year To Date 09/30/2023 Actual,PPD,$ Change,% Variance
 Census,,,,,,,,,,,,
 Census,2395,,2486,,-91,-0.0366,22501,,15390,,7111,0.462
 Total Census,2395,,2486,,-91,-0.0366,22501,,15390,,7111,0.462
