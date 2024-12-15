@@ -103,9 +103,17 @@ for sheet_name, (rows, columns) in sheets.items():
         df = rename_columns(df, num_rows=2)
         logger.debug(df.head())
 
-    elif sheet_name in ["IS Month Comparative", "Revenue Detailed", "Labor"]:
+    elif sheet_name in [
+        "IS Month Comparative",
+        "IS Month Comparative Detailed",
+        "Revenue Detailed",
+        "Labor",
+    ]:
         df = rename_columns(df, num_rows=3)
 
         logger.debug(df.head())
+
+    else:
+        logger.warning(f"Sheet {sheet_name} not processed")
 
     df.to_csv(data_dir / "processed" / f"{sheet_name}.csv", index=False)
