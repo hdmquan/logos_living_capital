@@ -9,17 +9,17 @@ ROOT = Path(__file__).resolve().parent.parent
 data_dir = ROOT / "data"
 xlsx_path = data_dir / "raw" / "2024 09 Harrisburg Opco Financial Statements.xlsx"
 
-# TODO: Deal with rows serve as hierachy
+
 sheets = {
-    "Census & Revenue Trend": [[7, 12], ["A", "N"]],  # TODO: Clear row of "Actual"
-    "Balance Sheet": [[6, 74], ["A", "F"]],  # TODO: Clear blank rows
+    "Census & Revenue Trend": [[7, 12], ["A", "N"]],
+    "Balance Sheet": [[6, 74], ["A", "F"]],
     "Income Statement T-12": [
         [7, 160],
         ["A", "N"],
     ],  # Note: This is huge, consider slicing in analysis
     "IS Month Comparative": [[7, 52], ["A", "M"]],
-    # Messy ahh spreadsheet, may need a separate script or split to 3 different csv
-    # "IS Month Comparative Detailed": [],
+    # TODO: Deal with missing PPD values
+    "IS Month Comparative Detailed": [[7, 319], ["A", "M"]],
     "Revenue Detailed": [[7, 54], ["A", "M"]],
     "Labor": [[7, 145], ["A", "I"]],
 }
@@ -45,10 +45,9 @@ def xlsx2df(rows: str, columns: str, sheet_name: str, xlsx_path=xlsx_path):
     # Remove repeated
     df = df[~df.apply(lambda row: row.nunique() <= 1, axis=1)]
 
-    # TODO Better implementation
-    # Remove any row with "nan" string
     df = df.replace("nan", np.nan)
 
+    # TODO: Deal with threshold values
     return df.dropna(axis=0, thresh=2)
 
 
@@ -101,7 +100,6 @@ for sheet_name, (rows, columns) in sheets.items():
         df = df.iloc[4:]
 
     elif sheet_name == "Balance Sheet":
-        # Combine the first two rows as they contain complimentary info
         df = rename_columns(df, num_rows=2)
         logger.debug(df.head())
 
