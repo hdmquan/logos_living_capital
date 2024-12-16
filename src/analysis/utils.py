@@ -29,7 +29,7 @@ def send_prompt(prompt, model: str = "gpt-4o", temperature=0.3):
         logger.error(f"Model {model} not found or supported")
 
 
-def dataframe_to_csv_text(df):
+def df_to_csv_text(df):
     """
     Save the dataframe to CSV format to a variable instead of file
     """
