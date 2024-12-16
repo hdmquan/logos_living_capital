@@ -7,24 +7,21 @@ from analysis import (
     utils,
 )
 
-prompt = """
-Given these analysis of these financial data of a real estate company, compile a complete analysis of what is going on, what should decision maker be aware of and what is the potential course of action. Your analysis should be as concise as possible without compromising any information and do not make up numbers and things.
-"""
+from analysis.prompt import Prompt
 
+prompt = Prompt.master
 
-prompt = (
-    "Balance sheet analysis: "
-    + balance_sheet.analyse()
-    + "Income Statement analysis: "
-    + income_statement.analyse()
-    + "IS Month Comparative analysis: "
-    + is_month_comparative.analyse()
-    + "Labor Data analysis: "
-    + labor.analyse()
-    + "Revenue Data analysis: "
-    + revenue.analyse()
-    + prompt
-)
+# Collecting analyses in a list for better readability
+analyses = [
+    "Balance sheet analysis: " + balance_sheet.analyse(),
+    "Income Statement analysis: " + income_statement.analyse(),
+    "IS Month Comparative analysis: " + is_month_comparative.analyse(),
+    "Labor Data analysis: " + labor.analyse(),
+    "Revenue Data analysis: " + revenue.analyse(),
+]
+
+# Joining the analyses into a single prompt
+prompt = "\n".join(analyses) + prompt
 
 response = utils.send_prompt(prompt)
 

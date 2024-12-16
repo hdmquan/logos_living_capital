@@ -4,22 +4,16 @@ from loguru import logger
 
 try:
     from utils import PATH, send_prompt, df_to_csv_text
+    from prompt import Prompt
 except ModuleNotFoundError:
     from .utils import PATH, send_prompt, df_to_csv_text
+    from .prompt import Prompt
 
 file_path = PATH.data_processed / "Revenue Detailed.csv"
 
 
 def analyse():
-    prompt = """
-        This is the company top 10 percentage variance:
-        {percent_var_top}
-        
-        This is the company top 10 dollar variance:
-        {dollar_var_top}
-
-        Analyze the finance variance data of this real estate company to assess its financial health and performance. Identify key financial ratios and trends to provide a comprehensive overview of its financial position. Your analysis should be as concise as possible without compromising any information and do not make up numbers and things.
-    """
+    prompt = Prompt.is_month_comparative
 
     if not os.path.exists(file_path):
         logger.error(f"File {file_path.name} does not exist")
