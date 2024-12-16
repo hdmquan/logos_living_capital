@@ -1,7 +1,11 @@
 import os
 import pandas as pd
 from loguru import logger
-from utils import PATH, send_prompt
+
+try:
+    from utils import PATH, send_prompt, df_to_csv_text
+except ModuleNotFoundError:
+    from .utils import PATH, send_prompt, df_to_csv_text
 
 file_path = PATH.data_processed / "Balance Sheet.csv"
 

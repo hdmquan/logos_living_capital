@@ -1,7 +1,11 @@
 import os
 import pandas as pd
-from utils import PATH, send_prompt, df_to_csv_text
 from loguru import logger
+
+try:
+    from utils import PATH, send_prompt, df_to_csv_text
+except ModuleNotFoundError:
+    from .utils import PATH, send_prompt, df_to_csv_text
 
 file_path = PATH.data_processed / "Revenue Detailed.csv"
 
