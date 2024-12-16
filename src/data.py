@@ -77,43 +77,44 @@ def rename_columns(df, num_rows=2):
     return df
 
 
-for sheet_name, (rows, columns) in sheets.items():
-    df = xlsx2df(rows, columns, sheet_name)
+if __name__ == "__main__":
+    for sheet_name, (rows, columns) in sheets.items():
+        df = xlsx2df(rows, columns, sheet_name)
 
-    if sheet_name in ["Census & Revenue Trend", "Income Statement T-12"]:
-        # Remove "Month Ending"
-        df = df.iloc[1:]
+        if sheet_name in ["Census & Revenue Trend", "Income Statement T-12"]:
+            # Remove "Month Ending"
+            df = df.iloc[1:]
 
-        # Change from mm/dd/yyyy to mmmm/yyyy
-        # logger.debug(sheet_name)
-        # logger.debug(df.columns)
-        # Also make the first line to column names
-        df.columns = df.iloc[0].astype(str)
-        # First row is still date
-        df.columns = [convert_date(column) for column in df.columns]
+            # Change from mm/dd/yyyy to mmmm/yyyy
+            # logger.debug(sheet_name)
+            # logger.debug(df.columns)
+            # Also make the first line to column names
+            df.columns = df.iloc[0].astype(str)
+            # First row is still date
+            df.columns = [convert_date(column) for column in df.columns]
 
-        # Annotate last column to YTD
-        df.columns = df.columns[:-1].tolist() + [f"{df.columns[-1]} YTD"]
-        # logger.debug(df.head())
+            # Annotate last column to YTD
+            df.columns = df.columns[:-1].tolist() + [f"{df.columns[-1]} YTD"]
+            # logger.debug(df.head())
 
-        # Remove "Actual" row and "Census" row because there only one
-        df = df.iloc[4:]
+            # Remove "Actual" row and "Census" row because there only one
+            df = df.iloc[4:]
 
-    elif sheet_name == "Balance Sheet":
-        df = rename_columns(df, num_rows=2)
-        logger.debug(df.head())
+        elif sheet_name == "Balance Sheet":
+            df = rename_columns(df, num_rows=2)
+            logger.debug(df.head())
 
-    elif sheet_name in [
-        "IS Month Comparative",
-        "IS Month Comparative Detailed",
-        "Revenue Detailed",
-        "Labor",
-    ]:
-        df = rename_columns(df, num_rows=3)
+        elif sheet_name in [
+            "IS Month Comparative",
+            "IS Month Comparative Detailed",
+            "Revenue Detailed",
+            "Labor",
+        ]:
+            df = rename_columns(df, num_rows=3)
 
-        logger.debug(df.head())
+            logger.debug(df.head())
 
-    else:
-        logger.warning(f"Sheet {sheet_name} not processed")
+        else:
+            logger.warning(f"Sheet {sheet_name} not processed")
 
-    df.to_csv(data_dir / "processed" / f"{sheet_name}.csv", index=False)
+        df.to_csv(data_dir / "processed" / f"{sheet_name}.csv", index=False)
