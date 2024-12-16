@@ -23,48 +23,29 @@ def analyse():
     # Keep only row with the word "Total"
     data = data[data.index.str.contains("total", case=False)]
 
-    print(data.index)
-    return ""
+    # print(data.index)
 
     # TODO: Need more discussion
-    key_groups = {
-        "Total Revenue": ["Total Revenue"],
-        "Total Census": ["Total Census"],
-        "Total Salaries": [
-            "Total Nursing Salaries",
-            "Total Dietary Salaries",
-            "Total Housekeeping Salaries",
-            "Total Recreation Salaries",
-            "Total Marketing Salaries",
-            "Total R&M Salaries",
-            "Total Administrative Salaries",
-        ],
-        "Total Expenses": [
-            "Total Nursing Expenses",
-            "Total Dietary Expenses",
-            "Total Housekeeping and Laundry Expenses",
-            "Total Recreation Expenses",
-            "Total Marketing Expenses",
-            "Total R&M Expenses",
-            "Total G&A Expenses",
-        ],
-        "Fixed Costs": [
-            "Total Rent and Depreciation",
-            "Total Insurance",
-        ],
-    }
+    important_roles = [
+        "Total Resident Care Director",
+        "Total Resident Care Associate",
+        "Total Regional Director of Clinical Operations",
+        "Total LPN",
+        "Total RN",
+        "Total Nursing Salaries",
+        "Total Aides",
+        "Total Executive Director",
+        "Total Housekeeping Staff",
+        "Total Dietary Salaries",
+        "Total Administrative Salaries",
+    ]
 
-    agg_data = pd.DataFrame(columns=data.columns)
-
-    for group, rows in key_groups.items():
-        matching_rows = data[data.index.isin(rows)]
-        if not matching_rows.empty:
-            agg_data.loc[group] = matching_rows.sum()
+    data = data[data.index.isin(important_roles)]
 
     # print(agg_data)
-    income_statement = df_to_csv_text(agg_data)
+    labor = df_to_csv_text(data)
 
-    prompt = prompt.format(income_statement=income_statement)
+    prompt = prompt.format(labor=labor)
     return send_prompt(prompt)
 
 
