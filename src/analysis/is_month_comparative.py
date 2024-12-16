@@ -15,6 +15,15 @@ file_path = PATH.data_processed / "Revenue Detailed.csv"
 def analyse():
     prompt = Prompt.is_month_comparative
 
+    dollar_var_top, percent_var_top = get_data()
+
+    prompt = prompt.format(
+        percent_var_top=percent_var_top, dollar_var_top=dollar_var_top
+    )
+    return send_prompt(prompt)
+
+
+def get_data():
     if not os.path.exists(file_path):
         logger.error(f"File {file_path.name} does not exist")
         return
@@ -33,10 +42,7 @@ def analyse():
 
     dollar_var_top = data.sort_values(by=data.columns[-2], ascending=False).head(10)
 
-    prompt = prompt.format(
-        percent_var_top=percent_var_top, dollar_var_top=dollar_var_top
-    )
-    return send_prompt(prompt)
+    return dollar_var_top, percent_var_top
 
 
 if __name__ == "__main__":
