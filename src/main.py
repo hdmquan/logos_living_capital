@@ -1,9 +1,11 @@
 import re
+import streamlit as st
 from reportlab.lib.pagesizes import letter
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib import colors
 import pandas as pd
+import io
 
 from analysis import (
     balance_sheet,
@@ -15,6 +17,11 @@ from analysis import (
 )
 
 from analysis.prompt import Prompt
+
+# Set page config
+st.set_page_config(
+    page_title="Financial Report Generator", page_icon="📊", layout="wide"
+)
 
 
 def qualitative():
@@ -70,7 +77,6 @@ def markdown2text(text, styles):
     return text_f
 
 
-# Convert DataFrame to ReportLab Table
 def df2table(df, col_widths=None):
     data = [df.columns.to_list()] + df.values.tolist()
     table = Table(data, colWidths=col_widths)
@@ -90,11 +96,10 @@ def df2table(df, col_widths=None):
     return table
 
 
-if __name__ == "__main__":
-    # POC
-    pdf_file = utils.PATH.root / "report.pdf"
-
-    doc = SimpleDocTemplate(str(pdf_file), pagesize=letter)
+def generate_pdf():
+    # Create PDF in memory
+    buffer = io.BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=letter)
     styles = getSampleStyleSheet()
 
     text = qualitative()
@@ -119,3 +124,48 @@ if __name__ == "__main__":
 
     # Build the document
     doc.build(elements)
+    buffer.seek(0)
+    return buffer
+
+
+def main():
+    st.title("Financial Report Generator")
+    st.write(
+        "Generate comprehensive financial reports with qualitative and quantitative analysis."
+    )
+
+    if st.button("Generate Report"):
+        with st.spinner("Generating report..."):
+            try:
+                # Generate qualitative analysis
+                qual_analysis = qualitative()
+                st.subheader("Qualitative Analysis")
+                st.markdown(qual_analysis)
+
+                # Generate quantitative analysis
+                dollar_var_top, percent_var_top = quantitative()
+
+                col1, col2 = st.columns(2)
+                with col1:
+                    st.subheader("Top 10 Categories with Highest Dollar Variance")
+                    st.dataframe(dollar_var_top)
+
+                with col2:
+                    st.subheader("Top 10 Categories with Highest Percent Variance")
+                    st.dataframe(percent_var_top)
+
+                # Generate PDF
+                pdf_buffer = generate_pdf()
+                st.download_button(
+                    label="Download PDF Report",
+                    data=pdf_buffer,
+                    file_name="financial_report.pdf",
+                    mime="application/pdf",
+                )
+
+            except Exception as e:
+                st.error(f"An error occurred: {str(e)}")
+
+
+if __name__ == "__main__":
+    main()
