@@ -100,15 +100,12 @@ def df2table(df, col_widths=None):
     return table
 
 
-def generate_pdf(data_dir):
-    data_dir = Path(data_dir)
+# TODO: To be more robust
+def generate_pdf(text, dollar_var_top, percent_var_top):
     # Create PDF in memory
     buffer = io.BytesIO()
     doc = SimpleDocTemplate(buffer, pagesize=letter)
     styles = getSampleStyleSheet()
-
-    text = qualitative(data_dir)
-    dollar_var_top, percent_var_top = quantitative(data_dir / "processed")
 
     # Parse the text
     elements = markdown2text(text, styles)
@@ -189,7 +186,9 @@ def main():
                 st.dataframe(percent_var_top)
 
                 # Generate PDF
-                pdf_buffer = generate_pdf(processed_dir)
+                pdf_buffer = generate_pdf(
+                    qual_analysis, dollar_var_top, percent_var_top
+                )
                 st.download_button(
                     label="Download PDF Report",
                     data=pdf_buffer,
