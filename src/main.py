@@ -87,12 +87,12 @@ def df2table(df, col_widths=None):
     table.setStyle(
         TableStyle(
             [
-                ("BACKGROUND", (0, 0), (-1, 0), colors.grey),
-                ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke),
+                ("BACKGROUND", (0, 0), (-1, 0), colors.darkslategray),
+                ("TEXTCOLOR", (0, 0), (-1, 0), colors.whites),
                 ("ALIGN", (0, 0), (-1, -1), "CENTER"),
                 ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
                 ("BOTTOMPADDING", (0, 0), (-1, 0), 12),
-                ("BACKGROUND", (0, 1), (-1, -1), colors.beige),
+                ("BACKGROUND", (0, 1), (-1, -1), colors.white),
                 ("GRID", (0, 0), (-1, -1), 1, colors.black),
             ]
         )
@@ -106,22 +106,38 @@ def generate_pdf(text, dollar_var_top, percent_var_top):
     buffer = io.BytesIO()
     doc = SimpleDocTemplate(buffer, pagesize=letter)
     styles = getSampleStyleSheet()
+    for style in styles:
+        styles[style].fontName = "Helvetica"
+
+    styles["Heading1"].alignment = 1  # TA_CENTER
+    styles["Heading2"].alignment = 1  # TA_CENTER
+    styles["Heading3"].alignment = 1  # TA_CENTER
 
     # Parse the text
     elements = markdown2text(text, styles)
 
-    # Add first DataFrame
-    elements.append(
-        Paragraph("Top 10 Categories with Highest Dollar Variance", styles["Heading3"])
-    )
+    # Create a small italic style
+    small_italic_style = styles["Normal"].clone("SmallItalic")
+    small_italic_style.fontSize = 8  # Set font size to small
+    small_italic_style.fontName = "Helvetica"
+    small_italic_style.italic = True
+
     elements.append(df2table(dollar_var_top, col_widths=[200, 150]))
+    elements.append(
+        Paragraph(
+            "Top 10 Categories with Highest Dollar Variance",
+            small_italic_style,
+        )
+    )
     elements.append(Spacer(1, 24))
 
-    # Add second DataFrame
-    elements.append(
-        Paragraph("Top 10 Categories with Highest Percent Variance", styles["Heading3"])
-    )
     elements.append(df2table(percent_var_top, col_widths=[200, 150]))
+    elements.append(
+        Paragraph(
+            "Top 10 Categories with Highest Percent Variance",
+            small_italic_style,
+        )
+    )
     elements.append(Spacer(1, 24))
 
     # Build the document
