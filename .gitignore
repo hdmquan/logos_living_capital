@@ -1,4 +1,7 @@
 openai-api-key.*
+*.csv
+*.xlsx
+*.xls
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

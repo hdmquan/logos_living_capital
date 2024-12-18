@@ -1,3 +1,4 @@
+import os
 import numpy as np
 import pandas as pd
 from datetime import datetime
@@ -75,6 +76,60 @@ def rename_columns(df, num_rows=2):
     df = df.iloc[num_rows:]
 
     return df
+
+
+def process_uploaded_file(uploaded_file, upload_dir: Path):
+    # Save uploaded file
+    os.mkdir(upload_dir)
+
+    xlsx_path = upload_dir / "raw" / uploaded_file.name
+    with open(xlsx_path, "wb") as f:
+        f.write(uploaded_file.getvalue())
+
+    # Process each sheet
+    for sheet_name, (rows, columns) in sheets.items():
+        df = xlsx2df(rows, columns, sheet_name, xlsx_path=xlsx_path)
+
+        if sheet_name in ["Census & Revenue Trend", "Income Statement T-12"]:
+            # Remove "Month Ending"
+            df = df.iloc[1:]
+
+            # Change from mm/dd/yyyy to mmmm/yyyy
+            # logger.debug(sheet_name)
+            # logger.debug(df.columns)
+            # Also make the first line to column names
+            df.columns = df.iloc[0].astype(str)
+            # First row is still date
+            df.columns = [convert_date(column) for column in df.columns]
+
+            # Annotate last column to YTD
+            df.columns = df.columns[:-1].tolist() + [f"{df.columns[-1]} YTD"]
+            # logger.debug(df.head())
+
+            # Remove "Actual" row and "Census" row because there only one
+            df = df.iloc[4:]
+
+        elif sheet_name == "Balance Sheet":
+            df = rename_columns(df, num_rows=2)
+            logger.debug(df.head())
+
+        elif sheet_name in [
+            "IS Month Comparative",
+            "IS Month Comparative Detailed",
+            "Revenue Detailed",
+            "Labor",
+        ]:
+            df = rename_columns(df, num_rows=3)
+
+            logger.debug(df.head())
+
+        else:
+            logger.warning(f"Sheet {sheet_name} not processed")
+
+        # Save to processed directory
+        df.to_csv(upload_dir / "processed" / f"{sheet_name}.csv", index=False)
+
+    return upload_dir
 
 
 if __name__ == "__main__":
