@@ -4,7 +4,7 @@ from pathlib import Path
 import shutil
 
 
-def create_unique_folder(uploaded_file, root_dir: Path) -> Path:
+def save_file(uploaded_file, root_dir: Path) -> Path:
     """Create a unique folder based on file hash and timestamp"""
     # Create hash of file content
     file_hash = hashlib.md5(uploaded_file.getvalue()).hexdigest()[:8]
@@ -20,5 +20,9 @@ def create_unique_folder(uploaded_file, root_dir: Path) -> Path:
     unique_folder.mkdir(parents=True, exist_ok=True)
     (unique_folder / "raw").mkdir(exist_ok=True)
     (unique_folder / "processed").mkdir(exist_ok=True)
+
+    # Save the uploaded file to the "raw" directory
+    with open(unique_folder / "raw" / uploaded_file.name, "wb") as f:
+        f.write(uploaded_file.getbuffer())
 
     return unique_folder

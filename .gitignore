@@ -1,3 +1,4 @@
+/uploads
 openai-api-key.*
 *.csv
 *.xlsx

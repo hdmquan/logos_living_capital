@@ -79,8 +79,7 @@ def rename_columns(df, num_rows=2):
 
 
 def process_uploaded_file(uploaded_file, upload_dir: Path):
-    # Save uploaded file
-    os.mkdir(upload_dir)
+    logger.debug(f"Processing {uploaded_file} uploaded file")
 
     xlsx_path = upload_dir / "raw" / uploaded_file.name
     with open(xlsx_path, "wb") as f:

@@ -29,7 +29,7 @@ st.set_page_config(
 
 def qualitative(data_dir):
     prompt = Prompt.master
-    data_dir = Path(data_dir)
+    data_dir = Path(data_dir) / "processed"
 
     # Collecting analyses in a list for better readability
     analyses = [
@@ -100,14 +100,15 @@ def df2table(df, col_widths=None):
     return table
 
 
-def generate_pdf():
+def generate_pdf(data_dir):
+    data_dir = Path(data_dir)
     # Create PDF in memory
     buffer = io.BytesIO()
     doc = SimpleDocTemplate(buffer, pagesize=letter)
     styles = getSampleStyleSheet()
 
-    text = qualitative()
-    dollar_var_top, percent_var_top = quantitative()
+    text = qualitative(data_dir)
+    dollar_var_top, percent_var_top = quantitative(data_dir / "processed")
 
     # Parse the text
     elements = markdown2text(text, styles)
@@ -148,7 +149,7 @@ def main():
     if uploaded_file is not None:
         # Create unique folder for this upload
         ROOT = Path(__file__).resolve().parent.parent
-        upload_dir = file_utils.create_unique_folder(uploaded_file, ROOT)
+        upload_dir = file_utils.save_file(uploaded_file, ROOT)
 
         # Process the uploaded file
         with st.spinner("Processing uploaded file..."):
@@ -177,7 +178,9 @@ def main():
                 st.markdown(qual_analysis)
 
                 # Generate quantitative analysis
-                dollar_var_top, percent_var_top = quantitative(processed_dir)
+                dollar_var_top, percent_var_top = quantitative(
+                    processed_dir / "processed"
+                )
 
                 st.subheader("Top 10 Categories with Highest Dollar Variance")
                 st.dataframe(dollar_var_top)
@@ -186,7 +189,7 @@ def main():
                 st.dataframe(percent_var_top)
 
                 # Generate PDF
-                pdf_buffer = generate_pdf()
+                pdf_buffer = generate_pdf(processed_dir)
                 st.download_button(
                     label="Download PDF Report",
                     data=pdf_buffer,

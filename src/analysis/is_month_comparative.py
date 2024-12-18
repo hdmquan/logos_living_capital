@@ -27,6 +27,8 @@ def analyse(file_dir=PATH.data_processed):
 def get_data(file_dir=PATH.data_processed):
     file_path = file_dir / file_name
 
+    logger.debug(file_path)
+
     if not os.path.exists(file_path):
         logger.error(f"File {file_path.name} does not exist")
         return
