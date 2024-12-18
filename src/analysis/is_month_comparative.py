@@ -5,17 +5,18 @@ from loguru import logger
 try:
     from utils import PATH, send_prompt, df_to_csv_text
     from prompt import Prompt
-except ModuleNotFoundError:
+except (ModuleNotFoundError, ImportError):
     from .utils import PATH, send_prompt, df_to_csv_text
     from .prompt import Prompt
 
-file_path = PATH.data_processed / "Revenue Detailed.csv"
+file_name = "Revenue Detailed.csv"
 
 
-def analyse():
+def analyse(file_dir=PATH.data_processed):
+    # file_path = file_dir / file_name
     prompt = Prompt.is_month_comparative
 
-    dollar_var_top, percent_var_top = get_data()
+    dollar_var_top, percent_var_top = get_data(file_dir)
 
     prompt = prompt.format(
         percent_var_top=percent_var_top, dollar_var_top=dollar_var_top
@@ -23,7 +24,11 @@ def analyse():
     return send_prompt(prompt)
 
 
-def get_data():
+def get_data(file_dir=PATH.data_processed):
+    file_path = file_dir / file_name
+
+    logger.debug(file_path)
+
     if not os.path.exists(file_path):
         logger.error(f"File {file_path.name} does not exist")
         return

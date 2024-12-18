@@ -6,7 +6,10 @@ from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib import colors
 import pandas as pd
 import io
+from pathlib import Path
+import utils as file_utils
 
+from data import process_uploaded_file
 from analysis import (
     balance_sheet,
     income_statement,
@@ -24,16 +27,17 @@ st.set_page_config(
 )
 
 
-def qualitative():
+def qualitative(data_dir):
     prompt = Prompt.master
+    data_dir = Path(data_dir) / "processed"
 
     # Collecting analyses in a list for better readability
     analyses = [
-        "Balance sheet analysis: " + balance_sheet.analyse(),
-        "Income Statement analysis: " + income_statement.analyse(),
-        "IS Month Comparative analysis: " + is_month_comparative.analyse(),
-        "Labor Data analysis: " + labor.analyse(),
-        "Revenue Data analysis: " + revenue.analyse(),
+        "Balance sheet analysis: " + balance_sheet.analyse(data_dir),
+        "Income Statement analysis: " + income_statement.analyse(data_dir),
+        "IS Month Comparative analysis: " + is_month_comparative.analyse(data_dir),
+        "Labor Data analysis: " + labor.analyse(data_dir),
+        "Revenue Data analysis: " + revenue.analyse(data_dir),
     ]
 
     # Joining the analyses into a single prompt
@@ -44,8 +48,8 @@ def qualitative():
     return response
 
 
-def quantitative():
-    return is_month_comparative.get_data()
+def quantitative(data_dir):
+    return is_month_comparative.get_data(data_dir)
 
 
 def markdown2text(text, styles):
@@ -96,14 +100,12 @@ def df2table(df, col_widths=None):
     return table
 
 
-def generate_pdf():
+# TODO: To be more robust
+def generate_pdf(text, dollar_var_top, percent_var_top):
     # Create PDF in memory
     buffer = io.BytesIO()
     doc = SimpleDocTemplate(buffer, pagesize=letter)
     styles = getSampleStyleSheet()
-
-    text = qualitative()
-    dollar_var_top, percent_var_top = quantitative()
 
     # Parse the text
     elements = markdown2text(text, styles)
@@ -134,28 +136,59 @@ def main():
         "Generate comprehensive financial reports with qualitative and quantitative analysis."
     )
 
-    if st.button("Generate Report"):
+    # File uploader
+    uploaded_file = st.file_uploader(
+        "Upload Financial Data (Excel)",
+        type=["xlsx", "xls"],
+        help="Upload the financial data Excel file",
+    )
+
+    if uploaded_file is not None:
+        # Create unique folder for this upload
+        ROOT = Path(__file__).resolve().parent.parent
+        upload_dir = file_utils.save_file(uploaded_file, ROOT)
+
+        # Process the uploaded file
+        with st.spinner("Processing uploaded file..."):
+            try:
+                processed_dir = process_uploaded_file(uploaded_file, upload_dir)
+                st.success(f"File processed successfully! Stored in: {processed_dir}")
+
+                # Store the processed directory path in session state
+                st.session_state["processed_dir"] = processed_dir
+
+                # Enable the generate report button
+                generate_report = st.button("Generate Report")
+            except Exception as e:
+                st.error(f"Error processing file: {str(e)}")
+                return
+    else:
+        st.info("Please upload a financial statement file to continue")
+        return
+
+    if "processed_dir" in st.session_state and generate_report:
         with st.spinner("Generating report..."):
             try:
                 # Generate qualitative analysis
-                qual_analysis = qualitative()
+                qual_analysis = qualitative(processed_dir)
                 st.subheader("Qualitative Analysis")
                 st.markdown(qual_analysis)
 
                 # Generate quantitative analysis
-                dollar_var_top, percent_var_top = quantitative()
+                dollar_var_top, percent_var_top = quantitative(
+                    processed_dir / "processed"
+                )
 
-                col1, col2 = st.columns(2)
-                with col1:
-                    st.subheader("Top 10 Categories with Highest Dollar Variance")
-                    st.dataframe(dollar_var_top)
+                st.subheader("Top 10 Categories with Highest Dollar Variance")
+                st.dataframe(dollar_var_top)
 
-                with col2:
-                    st.subheader("Top 10 Categories with Highest Percent Variance")
-                    st.dataframe(percent_var_top)
+                st.subheader("Top 10 Categories with Highest Percent Variance")
+                st.dataframe(percent_var_top)
 
                 # Generate PDF
-                pdf_buffer = generate_pdf()
+                pdf_buffer = generate_pdf(
+                    qual_analysis, dollar_var_top, percent_var_top
+                )
                 st.download_button(
                     label="Download PDF Report",
                     data=pdf_buffer,

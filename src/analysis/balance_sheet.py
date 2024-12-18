@@ -5,17 +5,18 @@ from loguru import logger
 try:
     from utils import PATH, send_prompt, df_to_csv_text
     from prompt import Prompt
-except ModuleNotFoundError:
+except (ModuleNotFoundError, ImportError):
     from .utils import PATH, send_prompt, df_to_csv_text
     from .prompt import Prompt
 
-file_path = PATH.data_processed / "Balance Sheet.csv"
+file_name = "Balance Sheet.csv"
 
 # TODO: Revise and improve this prompt
 # Current output is very undesirable
 
 
-def analyse():
+def analyse(file_dir=PATH.data_processed):
+    file_path = file_dir / file_name
     prompt = Prompt.balance_sheet
 
     if not os.path.exists(file_path):

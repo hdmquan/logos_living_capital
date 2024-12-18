@@ -5,14 +5,15 @@ from loguru import logger
 try:
     from utils import PATH, send_prompt, df_to_csv_text
     from prompt import Prompt
-except ModuleNotFoundError:
+except (ModuleNotFoundError, ImportError):
     from .utils import PATH, send_prompt, df_to_csv_text
     from .prompt import Prompt
 
-file_path = PATH.data_processed / "Labor.csv"
+file_name = "Labor.csv"
 
 
-def analyse():
+def analyse(file_dir=PATH.data_processed):
+    file_path = file_dir / file_name
     prompt = Prompt.labor
 
     if not os.path.exists(file_path):
