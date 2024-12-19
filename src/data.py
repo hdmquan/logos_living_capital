@@ -38,7 +38,7 @@ def xlsx2df(rows: str, columns: str, sheet_name: str, xlsx_path=xlsx_path):
 
     df = df.astype(str)
 
-    df = df.applymap(lambda x: x.strip() if isinstance(x, str) else x)
+    df = df.map(lambda x: x.strip() if isinstance(x, str) else x)
 
     # Remove empty
     df = df[~df.apply(lambda row: row.str.strip().eq("").all(), axis=1)]
@@ -57,7 +57,7 @@ def convert_date(date):
         date = datetime.strptime(date, "%m/%d/%Y")
         return date.strftime("%B/%Y")
     except ValueError:
-        logger.warning(f"Could not convert {date}")
+        # logger.warning(f"Could not convert {date}")
         return date
 
 
@@ -79,7 +79,7 @@ def rename_columns(df, num_rows=2):
 
 
 def process_uploaded_file(uploaded_file, upload_dir: Path):
-    logger.debug(f"Processing {uploaded_file} uploaded file")
+    # logger.debug(f"Processing {uploaded_file} uploaded file")
 
     xlsx_path = upload_dir / "raw" / uploaded_file.name
     with open(xlsx_path, "wb") as f:
@@ -110,7 +110,7 @@ def process_uploaded_file(uploaded_file, upload_dir: Path):
 
         elif sheet_name == "Balance Sheet":
             df = rename_columns(df, num_rows=2)
-            logger.debug(df.head())
+            # logger.debug(df.head())
 
         elif sheet_name in [
             "IS Month Comparative",
@@ -120,7 +120,7 @@ def process_uploaded_file(uploaded_file, upload_dir: Path):
         ]:
             df = rename_columns(df, num_rows=3)
 
-            logger.debug(df.head())
+            # logger.debug(df.head())
 
         else:
             logger.warning(f"Sheet {sheet_name} not processed")

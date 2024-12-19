@@ -7,6 +7,7 @@ from reportlab.lib import colors
 import pandas as pd
 import io
 from pathlib import Path
+from loguru import logger
 import utils as file_utils
 
 from data import process_uploaded_file
@@ -35,7 +36,7 @@ def qualitative(data_dir):
     analyses = [
         "Balance sheet analysis: " + balance_sheet.analyse(data_dir),
         "Income Statement analysis: " + income_statement.analyse(data_dir),
-        "IS Month Comparative analysis: " + is_month_comparative.analyse(data_dir),
+        "Variance analysis: " + is_month_comparative.analyse(data_dir),
         "Labor Data analysis: " + labor.analyse(data_dir),
         "Revenue Data analysis: " + revenue.analyse(data_dir),
     ]
@@ -88,7 +89,7 @@ def df2table(df, col_widths=None):
         TableStyle(
             [
                 ("BACKGROUND", (0, 0), (-1, 0), colors.darkslategray),
-                ("TEXTCOLOR", (0, 0), (-1, 0), colors.whites),
+                ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
                 ("ALIGN", (0, 0), (-1, -1), "CENTER"),
                 ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
                 ("BOTTOMPADDING", (0, 0), (-1, 0), 12),
@@ -102,23 +103,28 @@ def df2table(df, col_widths=None):
 
 # TODO: To be more robust
 def generate_pdf(text, dollar_var_top, percent_var_top):
+
     # Create PDF in memory
     buffer = io.BytesIO()
     doc = SimpleDocTemplate(buffer, pagesize=letter)
     styles = getSampleStyleSheet()
-    for style in styles:
-        styles[style].fontName = "Helvetica"
 
-    styles["Heading1"].alignment = 1  # TA_CENTER
-    styles["Heading2"].alignment = 1  # TA_CENTER
-    styles["Heading3"].alignment = 1  # TA_CENTER
+    # for style in styles:
+    #     styles[style].fontName = "Helvetica"
+
+    if "Heading1" in styles:
+        styles["Heading1"].alignment = 1
+    if "Heading2" in styles:
+        styles["Heading2"].alignment = 1
+    if "Heading3" in styles:
+        styles["Heading3"].alignment = 1
 
     # Parse the text
     elements = markdown2text(text, styles)
 
     # Create a small italic style
     small_italic_style = styles["Normal"].clone("SmallItalic")
-    small_italic_style.fontSize = 8  # Set font size to small
+    small_italic_style.fontSize = 8
     small_italic_style.fontName = "Helvetica"
     small_italic_style.italic = True
 
@@ -200,6 +206,23 @@ def main():
 
                 st.subheader("Top 10 Categories with Highest Percent Variance")
                 st.dataframe(percent_var_top)
+
+                # Sample for testing formating
+                # qual_analysis = "lorem ipsum dolor sit amet, consectetur adipiscing"
+
+                # dollar_var_top = pd.DataFrame(
+                #     {
+                #         "Category": ["Category 1", "Category 2"],
+                #         "Dollar Variance": [100, 50],
+                #     }
+                # )
+
+                # percent_var_top = pd.DataFrame(
+                #     {
+                #         "Category": ["Category 3", "Category 4"],
+                #         "Percent Variance": [50, 25],
+                #     }
+                # )
 
                 # Generate PDF
                 pdf_buffer = generate_pdf(

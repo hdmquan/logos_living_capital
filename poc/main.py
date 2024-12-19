@@ -37,7 +37,7 @@ def generate_pdf_from_prompt(prompt):
 
 
 prompt = """
-We are a real estate company. Here is our Value Variance:
+We are a retirement home. Here is our Value Variance:
 {is_month_comparative}
 
 Here is our Census Revenue Trend:
