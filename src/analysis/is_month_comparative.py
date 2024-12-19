@@ -37,7 +37,7 @@ def get_data(file_dir=PATH.data_processed):
     data = pd.read_csv(file_path, index_col=0)
     data = data.dropna()
 
-    data = data.iloc[:, [-4, -2, -1]]
+    # data = data.iloc[:, [-4, -2, -1]]
 
     percent_var_top = data.sort_values(by=data.columns[-1], ascending=False).head(10)
 
