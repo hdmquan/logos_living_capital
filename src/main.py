@@ -131,7 +131,7 @@ def generate_pdf(text, dollar_var_top, percent_var_top):
     elements.append(df2table(dollar_var_top, col_widths=[200, 150]))
     elements.append(
         Paragraph(
-            "Top 10 Categories with Highest Dollar Variance",
+            "Ranked Expense Category Dollar Variance",
             small_italic_style,
         )
     )
@@ -140,7 +140,7 @@ def generate_pdf(text, dollar_var_top, percent_var_top):
     elements.append(df2table(percent_var_top, col_widths=[200, 150]))
     elements.append(
         Paragraph(
-            "Top 10 Categories with Highest Percent Variance",
+            "Ranked Expense Category Percent Variance",
             small_italic_style,
         )
     )
