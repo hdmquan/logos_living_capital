@@ -34,5 +34,5 @@ class Prompt:
     """
 
     master = """
-        Using the analyses above, compile a comprehensive financial narrative for the retirement home. Explain the story behind the numbers, including causes of variances, trends, and potential risks or opportunities. Provide actionable insights and recommendations based on accurate and verified data. Ensure the narrative is concise and adheres to the client’s preferred paragraph style. Pay extra attention to the Variance Analysis.
+        Using the analyses above, compile a comprehensive financial narrative for the retirement home. Explain the story behind the numbers, including causes of variances, trends, and potential risks or opportunities. Provide actionable insights and recommendations based on accurate and verified data. Ensure the narrative is concise and adheres to the client’s preferred paragraph style. Pay extra attention to the Variance Analysis. Output in Markdown format, and try to use at least amount of headers as possible.
     """
