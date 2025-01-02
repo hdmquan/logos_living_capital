@@ -5,10 +5,13 @@ from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, Tabl
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib import colors
 import pandas as pd
+import plotly.graph_objects as go
 import io
 from pathlib import Path
 from loguru import logger
 import utils as file_utils
+from reportlab.lib.utils import ImageReader
+import plotly.io as pio
 
 from data import process_uploaded_file
 from analysis import (
@@ -50,7 +53,95 @@ def qualitative(data_dir):
 
 
 def quantitative(data_dir):
-    return is_month_comparative.get_data(data_dir)
+    dollar_var_top, percent_var_top = is_month_comparative.get_data(data_dir)
+    
+    # Add Sankey diagram generation
+    df = pd.read_csv(data_dir / "Income Statement T-12.csv", index_col=0)
+    
+    # Define income sources and expenses
+    income_sources = [
+        'Room and Board Income', 'Care Level Income', 
+        'Ancillary Income', 'Other Income'
+    ]
+    expenses = [
+        'Total Nursing Expenses', 'Total Dietery Expenses',
+        'Total Housekeeping and Laundry Expenses', 'Total Recreation Expenses',
+        'Total Marketing Expenses', 'Total R&M Expenses', 'Outside Ground Services',
+        'Utilities', 'Total G&A Expenses', 'Management Fee', 'Real Estate Taxes', 'Operating Income'
+    ]
+    
+    # Prepare Sankey data
+    labels = (income_sources + ['Total Revenue'] + expenses + 
+             ['Operating Income'])
+    
+    # Create source-target pairs
+    source = (
+        [labels.index(src) for src in income_sources] +  # Income to Total Revenue
+        [labels.index('Total Revenue')] * len(expenses)   # Total Revenue to each expense
+    )
+    
+    target = (
+        [labels.index('Total Revenue')] * len(income_sources) +  # All income to Total Revenue
+        [labels.index(exp) for exp in expenses]  # Total Revenue to each expense
+    )
+    
+    # Calculate values
+    values = (
+        [df.loc[src].iloc[-1] for src in income_sources] +  # Income values
+        [-df.loc[exp].iloc[-1] for exp in expenses]  # Expense values (negative to show outflow)
+    )
+
+    def format_value(val):
+        val = int(val) if isinstance(val, (int, float)) else val
+        abs_val = abs(val)
+        if abs_val >= 1_000_000:
+            return f"${abs_val/1_000_000:.1f}M"
+        elif abs_val >= 1_000:
+            return f"${abs_val/1_000:.1f}K"
+        else:
+            return f"${abs_val:.0f}"
+    
+    values_ = values.copy()
+    values_.insert(len(income_sources), df.loc['Total Revenue'].iloc[-1])
+    values_.insert(-1, df.loc['Operating Income'].iloc[-1])
+
+    print(len(labels), len(values_))
+        
+    for i in range(len(labels)):
+        print(labels[i], values_[i])
+        labels[i] = f"{labels[i]} ({format_value(values_[i])})"
+
+    
+    # Create Sankey diagram with color differentiation
+    fig = go.Figure(data=[go.Sankey(
+        node=dict(
+            pad=15,
+            thickness=20,
+            line=dict(color="black", width=0.5),
+            label=labels,
+            # Color income nodes green, expenses red, and Total Revenue blue
+            color=["#009933"] * len(income_sources) + 
+                  ["#3f3f3f"] + 
+                  ["#cc0000"] * len(expenses) +
+                  ["#3498db"],
+        ),
+        link=dict(
+            color=["#efefef"] * len(source),
+            source=source,
+            target=target,
+            value=[abs(v) for v in values],  # Use absolute values for link widths
+            label=[format_value(v) for v in values]
+        ),
+        textfont=dict(color="white", size=16)
+    )])
+    fig.update_layout(
+        title_text="Revenue and Expense Flow",
+        font_size=10,
+        height=800  # Make the diagram taller for better visibility
+    )
+
+        
+    return dollar_var_top, percent_var_top, fig
 
 
 def markdown2text(text, styles):
@@ -102,7 +193,7 @@ def df2table(df, col_widths=None):
 
 
 # TODO: To be more robust
-def generate_pdf(text, dollar_var_top, percent_var_top):
+def generate_pdf(text, dollar_var_top, percent_var_top, sankey_fig):
 
     # Create PDF in memory
     buffer = io.BytesIO()
@@ -141,6 +232,19 @@ def generate_pdf(text, dollar_var_top, percent_var_top):
     elements.append(
         Paragraph(
             "Ranked Expense Category Percent Variance",
+            small_italic_style,
+        )
+    )
+    elements.append(Spacer(1, 24))
+
+    # Add Sankey diagram to PDF
+    # Save the Plotly figure as a static image in memory
+    img_bytes = pio.to_image(sankey_fig, format="png", width=700, height=500)
+    img = ImageReader(io.BytesIO(img_bytes))
+    elements.append(Table([[img]], colWidths=[500]))
+    elements.append(
+        Paragraph(
+            "Revenue and Expense Flow",
             small_italic_style,
         )
     )
@@ -197,9 +301,12 @@ def main():
                 st.markdown(qual_analysis)
 
                 # Generate quantitative analysis
-                dollar_var_top, percent_var_top = quantitative(
+                dollar_var_top, percent_var_top, sankey_fig = quantitative(
                     processed_dir / "processed"
                 )
+
+                st.subheader("Revenue and Expense Flow")
+                st.plotly_chart(sankey_fig, use_container_width=True)
 
                 st.subheader("Top 10 Categories with Highest Dollar Variance")
                 st.dataframe(dollar_var_top)
@@ -207,26 +314,14 @@ def main():
                 st.subheader("Top 10 Categories with Highest Percent Variance")
                 st.dataframe(percent_var_top)
 
-                # Sample for testing formating
-                # qual_analysis = "lorem ipsum dolor sit amet, consectetur adipiscing"
-
-                # dollar_var_top = pd.DataFrame(
-                #     {
-                #         "Category": ["Category 1", "Category 2"],
-                #         "Dollar Variance": [100, 50],
-                #     }
-                # )
-
-                # percent_var_top = pd.DataFrame(
-                #     {
-                #         "Category": ["Category 3", "Category 4"],
-                #         "Percent Variance": [50, 25],
-                #     }
-                # )
+                
 
                 # Generate PDF
                 pdf_buffer = generate_pdf(
-                    qual_analysis, dollar_var_top, percent_var_top
+                    qual_analysis, 
+                    dollar_var_top, 
+                    percent_var_top,
+                    sankey_fig
                 )
                 st.download_button(
                     label="Download PDF Report",
@@ -237,6 +332,7 @@ def main():
 
             except Exception as e:
                 st.error(f"An error occurred: {str(e)}")
+                logger.exception("An error occurred during report generation")  # Print the trace as well
 
 
 if __name__ == "__main__":
