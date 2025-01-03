@@ -49,6 +49,44 @@ def total_revenue_stack_line(df):
     
     return fig
 
+def total_expense_stack_line(df):
+        # Transpose the DataFrame so time is on x-axis
+    df_transposed = df.transpose()
+    
+    # Create figure
+    fig = go.Figure()
+    
+    # Add a trace for each income source
+    for expense in expenses:
+        fig.add_trace(go.Scatter(
+            x=df_transposed.index[:-1],  # Without the final YTD
+            y=df_transposed[expense],  # Values for each income source
+            name=expense,
+            stackgroup='one',  # This enables stacking
+            fill='tonexty'     # Fill area between traces
+        ))
+    
+    # Add Total Revenue line on top
+    fig.add_trace(go.Scatter(
+        x=df_transposed.index[:-1],
+        y=df_transposed['Total Expense'],
+        name='Total Expense',
+        line=dict(color='black', width=2),
+        mode='lines'  # Only show line, no fill
+    ))
+
+    # Update layout
+    fig.update_layout(
+        title_text="Expense Breakdown Over Time",
+        xaxis_title="Month",
+        yaxis_title="Amount ($)",
+        height=600,
+        showlegend=True,
+        hovermode='x unified'
+    )
+    
+    return fig
+
 def sankey_diagram(df, font_size=10):
     # Prepare Sankey data
     labels = (income_sources + ['Total Revenue'] + expenses + 

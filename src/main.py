@@ -27,7 +27,7 @@ from analysis.prompt import Prompt
 from data import process_uploaded_file
 import utils as file_utils
 from utils import markdown2text, df2table
-from chart import sankey_diagram, total_revenue_stack_line
+from chart import sankey_diagram, total_revenue_stack_line, total_expense_stack_line
 
 # Set page config
 st.set_page_config(
@@ -66,11 +66,12 @@ def quantitative(data_dir):
     fig_display = sankey_diagram(df, font_size=16)
     fig_pdf = sankey_diagram(df, font_size=10)
     fig_stack_line = total_revenue_stack_line(df)
-    return dollar_var_top, percent_var_top, fig_display, fig_pdf, fig_stack_line
+    fig_expense_stack_line = total_expense_stack_line(df)
+    return dollar_var_top, percent_var_top, fig_display, fig_pdf, fig_stack_line, fig_expense_stack_line
 
 
 # TODO: To be more robust
-def generate_pdf(text, dollar_var_top, percent_var_top, sankey_fig, fig_stack_line):
+def generate_pdf(text, dollar_var_top, percent_var_top, sankey_fig, fig_stack_line, fig_expense_stack_line):
     # Create PDF in memory
     buffer = io.BytesIO()
     doc = SimpleDocTemplate(buffer, pagesize=letter)
@@ -150,7 +151,7 @@ def generate_pdf(text, dollar_var_top, percent_var_top, sankey_fig, fig_stack_li
 
     add_image_to_elements(sankey_fig, elements, "Revenue and Expense Flow", small_italic_style)
     add_image_to_elements(fig_stack_line, elements, "Revenue Breakdown Over Time", small_italic_style)
-
+    add_image_to_elements(fig_expense_stack_line, elements, "Expense Breakdown Over Time", small_italic_style)
     # Build the document
     doc.build(elements)
     buffer.seek(0)
@@ -202,7 +203,7 @@ def main():
                 st.markdown(qual_analysis)
 
                 # Generate quantitative analysis
-                (dollar_var_top, percent_var_top, sankey_fig_display, sankey_fig_pdf, fig_stack_line) = quantitative(
+                (dollar_var_top, percent_var_top, sankey_fig_display, sankey_fig_pdf, fig_stack_line, fig_expense_stack_line) = quantitative(
                     processed_dir / "processed"
                 )
 
@@ -212,6 +213,9 @@ def main():
                 st.subheader("Revenue Breakdown Over Time")
                 st.plotly_chart(fig_stack_line, use_container_width=True)
 
+                st.subheader("Expense Breakdown Over Time")
+                st.plotly_chart(fig_expense_stack_line, use_container_width=True)
+
                 st.subheader("Top 10 Categories with Highest Dollar Variance")
                 st.dataframe(dollar_var_top)
 
@@ -220,7 +224,7 @@ def main():
 
                 # Generate PDF
                 pdf_buffer = generate_pdf(
-                    qual_analysis, dollar_var_top, percent_var_top, sankey_fig_pdf, fig_stack_line
+                    qual_analysis, dollar_var_top, percent_var_top, sankey_fig_pdf, fig_stack_line, fig_expense_stack_line
                 )
                 st.download_button(
                     label="Download PDF Report",
