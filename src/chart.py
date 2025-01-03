@@ -1,18 +1,55 @@
 import plotly.graph_objects as go
 
-def create_sankey_diagram(df, font_size=10):
-    # Define income sources and expenses
-    income_sources = [
-        'Room and Board Income', 'Care Level Income', 
-        'Ancillary Income', 'Other Income'
-    ]
-    expenses = [
-        'Total Nursing Expenses', 'Total Dietery Expenses',
-        'Total Housekeeping and Laundry Expenses', 'Total Recreation Expenses',
-        'Total Marketing Expenses', 'Total R&M Expenses', 'Outside Ground Services',
-        'Utilities', 'Total G&A Expenses', 'Management Fee', 'Real Estate Taxes', 'Operating Income'
-    ]
+income_sources = [
+    'Room and Board Income', 'Care Level Income', 
+    'Ancillary Income', 'Other Income'
+]
+expenses = [
+    'Total Nursing Expenses', 'Total Dietery Expenses',
+    'Total Housekeeping and Laundry Expenses', 'Total Recreation Expenses',
+    'Total Marketing Expenses', 'Total R&M Expenses', 'Outside Ground Services',
+    'Utilities', 'Total G&A Expenses', 'Management Fee', 'Real Estate Taxes', 'Operating Income'
+]
+
+def total_revenue_stack_line(df):
+    # Transpose the DataFrame so time is on x-axis
+    df_transposed = df.transpose()
     
+    # Create figure
+    fig = go.Figure()
+    
+    # Add a trace for each income source
+    for source in income_sources:
+        fig.add_trace(go.Scatter(
+            x=df_transposed.index[:-1],  # Without the final YTD
+            y=df_transposed[source],  # Values for each income source
+            name=source,
+            stackgroup='one',  # This enables stacking
+            fill='tonexty'     # Fill area between traces
+        ))
+    
+    # Add Total Revenue line on top
+    fig.add_trace(go.Scatter(
+        x=df_transposed.index[:-1],
+        y=df_transposed['Total Revenue'],
+        name='Total Revenue',
+        line=dict(color='black', width=2),
+        mode='lines'  # Only show line, no fill
+    ))
+
+    # Update layout
+    fig.update_layout(
+        title_text="Revenue Breakdown Over Time",
+        xaxis_title="Month",
+        yaxis_title="Amount ($)",
+        height=600,
+        showlegend=True,
+        hovermode='x unified'
+    )
+    
+    return fig
+
+def sankey_diagram(df, font_size=10):
     # Prepare Sankey data
     labels = (income_sources + ['Total Revenue'] + expenses + 
              ['Operating Income'])

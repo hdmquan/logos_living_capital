@@ -27,7 +27,7 @@ from analysis.prompt import Prompt
 from data import process_uploaded_file
 import utils as file_utils
 from utils import markdown2text, df2table
-from chart import create_sankey_diagram
+from chart import sankey_diagram, total_revenue_stack_line
 
 # Set page config
 st.set_page_config(
@@ -63,14 +63,14 @@ def quantitative(data_dir):
     df = pd.read_csv(data_dir / "Income Statement T-12.csv", index_col=0)
 
     # Create Sankey diagram
-    fig_display = create_sankey_diagram(df, font_size=16)
-    fig_pdf = create_sankey_diagram(df, font_size=10)
-
-    return dollar_var_top, percent_var_top, fig_display, fig_pdf
+    fig_display = sankey_diagram(df, font_size=16)
+    fig_pdf = sankey_diagram(df, font_size=10)
+    fig_stack_line = total_revenue_stack_line(df)
+    return dollar_var_top, percent_var_top, fig_display, fig_pdf, fig_stack_line
 
 
 # TODO: To be more robust
-def generate_pdf(text, dollar_var_top, percent_var_top, sankey_fig):
+def generate_pdf(text, dollar_var_top, percent_var_top, sankey_fig, fig_stack_line):
     # Create PDF in memory
     buffer = io.BytesIO()
     doc = SimpleDocTemplate(buffer, pagesize=letter)
@@ -119,34 +119,37 @@ def generate_pdf(text, dollar_var_top, percent_var_top, sankey_fig):
     )
     elements.append(Spacer(1, 24))
 
-    # Convert Plotly figure to PIL Image
-    img_bytes = pio.to_image(sankey_fig, format="png", width=700, height=500)
-    img = Image.open(io.BytesIO(img_bytes))
-    
-    # Save the image to a temporary buffer
-    img_buffer = io.BytesIO()
-    img.save(img_buffer, format='PNG')
-    img_buffer.seek(0)
+    def add_image_to_elements(fig, elements, title, small_italic_style, max_width=500, img_format='png', width=700, height=500):
+        # Convert Plotly figure to PIL Image
+        img_bytes = pio.to_image(fig, format=img_format, width=width, height=height)
+        img = Image.open(io.BytesIO(img_bytes))
+        
+        # Save the image to a temporary buffer
+        img_buffer = io.BytesIO()
+        img.save(img_buffer, format='PNG')
+        img_buffer.seek(0)
 
-    # Calculate image dimensions while maintaining aspect ratio
-    max_width = 500  # Maximum width in points
-    img_width, img_height = img.size
-    aspect = img_height / float(img_width)
-    new_width = min(max_width, img_width)
-    new_height = new_width * aspect
+        # Calculate image dimensions while maintaining aspect ratio
+        img_width, img_height = img.size
+        aspect = img_height / float(img_width)
+        new_width = min(max_width, img_width)
+        new_height = new_width * aspect
 
-    # Create a flowable image
-    from reportlab.platypus import Image as RLImage
-    img_flowable = RLImage(img_buffer, width=new_width, height=new_height)
-    elements.append(img_flowable)
-    
-    elements.append(
-        Paragraph(
-            "Revenue and Expense Flow",
-            small_italic_style,
+        # Create a flowable image
+        from reportlab.platypus import Image as RLImage
+        img_flowable = RLImage(img_buffer, width=new_width, height=new_height)
+        elements.append(img_flowable)
+        
+        elements.append(
+            Paragraph(
+                title,
+                small_italic_style,
+            )
         )
-    )
-    elements.append(Spacer(1, 24))
+        elements.append(Spacer(1, 24))
+
+    add_image_to_elements(sankey_fig, elements, "Revenue and Expense Flow", small_italic_style)
+    add_image_to_elements(fig_stack_line, elements, "Revenue Breakdown Over Time", small_italic_style)
 
     # Build the document
     doc.build(elements)
@@ -199,12 +202,15 @@ def main():
                 st.markdown(qual_analysis)
 
                 # Generate quantitative analysis
-                dollar_var_top, percent_var_top, sankey_fig_display, sankey_fig_pdf = quantitative(
+                (dollar_var_top, percent_var_top, sankey_fig_display, sankey_fig_pdf, fig_stack_line) = quantitative(
                     processed_dir / "processed"
                 )
 
                 st.subheader("Revenue and Expense Flow")
                 st.plotly_chart(sankey_fig_display, use_container_width=True)
+
+                st.subheader("Revenue Breakdown Over Time")
+                st.plotly_chart(fig_stack_line, use_container_width=True)
 
                 st.subheader("Top 10 Categories with Highest Dollar Variance")
                 st.dataframe(dollar_var_top)
@@ -214,7 +220,7 @@ def main():
 
                 # Generate PDF
                 pdf_buffer = generate_pdf(
-                    qual_analysis, dollar_var_top, percent_var_top, sankey_fig_pdf
+                    qual_analysis, dollar_var_top, percent_var_top, sankey_fig_pdf, fig_stack_line
                 )
                 st.download_button(
                     label="Download PDF Report",
